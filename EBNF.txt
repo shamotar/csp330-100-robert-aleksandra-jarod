@@ -1,0 +1,16 @@
+<banking_program> ::= <statement> | <statement> <banking_program>
+<statement> ::= <deposit_statement> | <withdrawal_statement> | <balance_inquiry_statement>
+<deposit_statement> ::= "DEPOSIT" <account_number> <amount>
+<withdrawal_statement> ::= "WITHDRAWAL" <account_number> <amount>
+<balance_inquiry_statement> ::= "BALANCE" <account_number>
+<first_name> ::= <letter> <letter>+
+<last_name> ::= <letter> <letter>+
+<account_number> ::= <letters><digits>
+<letters> ::= <letter> <letter>
+<digits> ::= <digit> <digit> <digit> <digit> <digit> <digit>
+<amount> ::= <integer_part> [<decimal_point> <fractional_part>]
+<integer_part> ::= <digit> | <digit> <integer_part>
+<fractional_part> ::= <digit> | <digit> <fractional_part>
+<decimal_point> ::= "."   
+<digit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+<letter> ::= "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z"
