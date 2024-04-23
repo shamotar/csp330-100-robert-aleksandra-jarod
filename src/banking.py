@@ -1,3 +1,4 @@
+import re
 import os
 from enum import Enum
 import random
@@ -33,11 +34,20 @@ class TokenType(Enum):
     TT_KEYWORD = "TT_KEYWORD"
 
 
-WHITESPACE = " \t"
+WHITESPACE = " \t\n\r"
 LETTER = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 DIGIT = "0123456789"
 DECIMAL_POINT = "."
-KEYWORDS = ["DEPOSIT", "WITHDRAW", "BALANCE", "DECLARE", "FIRSTNAME", "LASTNAME"]
+KEYWORDS = [
+    "DEPOSIT",
+    "WITHDRAW",
+    "BALANCE",
+    "CREATE",
+    "FIRSTNAME",
+    "LASTNAME",
+    "ACCOUNT",
+]
+ACCOUNT_NUMBER_FORMAT = "^[A-Z]{2}[0-9]{6}"
 
 
 class Token:
@@ -69,7 +79,7 @@ class Lexer:
     def lex(self) -> tuple[list[Token], Error]:
         self.advance()
         while self.index < len(self.source):
-            if self.current_char == " " or self.current_char == "\t":
+            if self.current_char in WHITESPACE:
                 self.advance()
             elif self.current_char in LETTER:
                 self.tokens.append(self.lex_word())
@@ -84,7 +94,7 @@ class Lexer:
 
     def lex_word(self):
         word = ""
-        while self.current_char is not None and self.current_char != " ":
+        while self.current_char is not None and self.current_char not in WHITESPACE:
             word += self.current_char
             self.advance()
         if word in KEYWORDS:
@@ -108,12 +118,20 @@ class Node:
     pass
 
 
-class DeclarationNode(Node):
-    def __init__(self, firstname, lastname):
+class CreateNode(Node):
+    def __init__(
+        self,
+        firstname,
+        lastname,
+        balance=Token(TokenType.TT_INT, 0),
+        account_identifier=None,
+    ):
         self.firstname = firstname
         self.lastname = lastname
-        self.account_identifier = self.build_account_identifier()
-        self.balance = 0
+        self.account_identifier = account_identifier
+        if not account_identifier:
+            self.account_identifier = self.build_account_identifier()
+        self.balance = balance
 
     def build_account_identifier(self):
         # First letter of the first name and first letter of the last name and 6 random digits
@@ -125,7 +143,9 @@ class DeclarationNode(Node):
         )
 
     def __repr__(self):
-        return f"DeclarationNode({self.firstname}, {self.lastname}, {self.account_identifier})"
+        return (
+            f"CreateNode({self.firstname}, {self.lastname}, {self.account_identifier})"
+        )
 
 
 class DepositNode(Node):
@@ -180,8 +200,8 @@ class Parser:
 
     def parse_statement(self):
         if self.current_token.type == TokenType.TT_KEYWORD:
-            if self.current_token.value == "DECLARE":
-                return self.parse_declaration()
+            if self.current_token.value == "CREATE":
+                return self.parse_create()
             elif self.current_token.value == "DEPOSIT":
                 return self.parse_deposit()
             elif self.current_token.value == "WITHDRAW":
@@ -189,7 +209,7 @@ class Parser:
             elif self.current_token.value == "BALANCE":
                 return self.parse_balance()
         return InvalidSyntaxError(
-            "Expected keyword DECLARE, DEPOSIT, WITHDRAW, or BALANCE"
+            "Expected keyword CREATE, DEPOSIT, WITHDRAW, or BALANCE"
         )
 
     def parse_deposit(self):
@@ -230,33 +250,68 @@ class Parser:
             return InvalidSyntaxError("Expected a string")
         return BalanceNode(account_identifier)
 
-    def parse_declaration(self):
+    def parse_create(self):
+        # Check if the next token is the keyword FIRSTNAME
         self.advance()
-        if (
-            self.current_token.type == TokenType.TT_KEYWORD
-            and self.current_token.value == "FIRSTNAME"
+        if self.current_token is None or (
+            self.current_token.type != TokenType.TT_KEYWORD
+            and self.current_token.value != "FIRSTNAME"
         ):
-            self.advance()
-        else:
             return InvalidSyntaxError("Expected keyword FIRSTNAME")
-        if self.current_token.type == TokenType.TT_STR:
-            first_name = self.current_token
-        else:
-            return InvalidSyntaxError("Expected a string")
         self.advance()
-        if (
-            self.current_token.type == TokenType.TT_KEYWORD
-            and self.current_token.value == "LASTNAME"
-        ):
-            self.advance()
-        else:
-            return InvalidSyntaxError("Expected the keyword LASTNAME")
 
-        if self.current_token.type == TokenType.TT_STR:
-            last_name = self.current_token
-        else:
+        # Check if the next token is a string, this will represent the first name
+        if self.current_token is None and self.current_token.type == TokenType.TT_STR:
             return InvalidSyntaxError("Expected a string")
-        return DeclarationNode(first_name, last_name)
+        first_name = self.current_token
+        self.advance()
+
+        # Check if the next token is the keyword LASTNAME
+        if self.current_token is None or (
+            self.current_token.type != TokenType.TT_KEYWORD
+            and self.current_token.value != "LASTNAME"
+        ):
+            return InvalidSyntaxError("Expected the keyword LASTNAME")
+        self.advance()
+
+        # Check if the next token is a string, this will represent the last name
+        if self.current_token is None and self.current_token.type == TokenType.TT_STR:
+            return InvalidSyntaxError("Expected a string")
+        last_name = self.current_token
+
+        # Check for optional keywords BALANCE and ACCOUNT
+        balance = Token(TokenType.TT_INT, 0)
+        account_identifier = None
+
+        self.advance()
+        while self.current_token is not None:
+            if self.current_token.type == TokenType.TT_KEYWORD:
+                # Should be either BALANCE or ACCOUNT
+                if self.current_token.value == "BALANCE":
+                    # Check if the next token is a number, return SyntaxError if not
+                    self.advance()
+                    if (
+                        self.current_token.type == TokenType.TT_INT
+                        or self.current_token.type == TokenType.TT_FLOAT
+                    ):
+                        balance = self.current_token
+                    else:
+                        return InvalidSyntaxError("Expected a number")
+                elif self.current_token.value == "ACCOUNT":
+                    # Check if the next token is a string, return SyntaxError if not
+                    self.advance()
+                    if self.current_token.type == TokenType.TT_STR:
+                        # Check if the account number is in the correct format
+                        if re.match(ACCOUNT_NUMBER_FORMAT, self.current_token.value):
+                            account_identifier = self.current_token
+                        else:
+                            return InvalidSyntaxError("Invalid account number format")
+                    else:
+                        return InvalidSyntaxError("Expected a string")
+
+            self.advance()
+
+        return CreateNode(first_name, last_name, balance, account_identifier)
 
 
 class AccountTable:
@@ -264,13 +319,19 @@ class AccountTable:
         self.accounts = {}
 
     def add_account(self, account):
-        self.accounts[account.account_identifier.value] = account
+        result = self.get_account(account.account_identifier.value)
+        if not result:
+            self.accounts[account.account_identifier.value] = account
+            return account
+
+        print("Account already exists... picking a new account number")
 
     def get_account(self, account_identifier):
         if account_identifier in self.accounts:
             return self.accounts[account_identifier]
         else:
             return None
+
 
 class Interpreter:
     def __init__(self, account_table):
@@ -285,7 +346,7 @@ class Interpreter:
         method = getattr(self, method_name)
         return method(node)
 
-    def visit_DeclarationNode(self, node):
+    def visit_CreateNode(self, node):
         self.account_table.add_account(node)
         print("Account created: ", node.account_identifier.value)
         return node
@@ -293,8 +354,8 @@ class Interpreter:
     def visit_DepositNode(self, node: DepositNode):
         account = self.account_table.get_account(node.account_identifier.value)
         if account:
-            account.balance += node.amount.value
-            print("Deposit successful")
+            account.balance.value += node.amount.value
+            print(f"Deposit of ${node.amount.value} into account {node.account_identifier.value} successful")
         else:
             print("Account not found")
         return node
@@ -302,11 +363,11 @@ class Interpreter:
     def visit_WithdrawNode(self, node: WithdrawNode):
         account = self.account_table.get_account(node.account_identifier.value)
         if account:
-            if account.balance < node.amount.value:
-                print("Insufficient funds")
+            if account.balance.value < node.amount.value:
+                print(f"Insufficient funds in account {node.account_identifier.value}")
             else:
-                account.balance -= node.amount.value
-                print("Withdrawal successful")
+                account.balance.value -= node.amount.value
+                print(f"Withdrawal of ${node.amount.value} from account {node.account_identifier.value} successful")
         else:
             print("Account not found")
         return node
@@ -314,11 +375,12 @@ class Interpreter:
     def visit_BalanceNode(self, node):
         account = self.account_table.get_account(node.account_identifier.value)
         if account:
-            print("Balance: ", account.balance)
+            print(f"Balance for account {node.account_identifier.value}: ${account.balance.value}")
         else:
             print("Account not found")
 
         return node
+
 
 global_account_table = AccountTable()
 

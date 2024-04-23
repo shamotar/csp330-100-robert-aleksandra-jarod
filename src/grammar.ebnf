@@ -1,7 +1,7 @@
 <program> ::= <statement> +
-<statement> ::= <withdrawal> | <deposit> | <declaration> | <balance>
+<statement> ::= <withdrawal> | <deposit> | <create_account> | <balance>
 <balance> ::= "BALANCE" <account>
-<declaration> ::= "DECLARE" "FIRSTNAME" <name> "LASTNAME" <name>
+<create_account> ::= "CREATE" "FIRSTNAME" <name> "LASTNAME" <name> | <create_account> "BALANCE" <number> | <create_account> "ACCOUNT" <account_identifier>
 <deposit> ::= "DEPOSIT" <account> <number>
 <withdrawal> ::= "WITHDRAW" <account> <number>
 <account_identifier> ::= <letter> <letter> <digit> <digit> <digit> <digit> <digit> <digit>
