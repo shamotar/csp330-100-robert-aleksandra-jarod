@@ -1,7 +1,20 @@
+# =================================================================================================
+#       Title:              shell.py
+#       Description:        This file is the entry point of the application. It provides an 
+#                           interactive shell to the user
+#
+#       Author(s):          Norlander, Robert       (Primary)
+#                           Koenigsfeld, Jarod      (Debugging)
+#                           Salamonska, Aleksandra  (Documentation)
+#
+#       Class:              CSC 330-100 Language Design and Implementation
+#       Date:               2024-04-28
+#       Version:            1.0
+# =================================================================================================
 import sys
 import src.banking as banking
 
-# Check if a file is provided as an argument
+# Check if a file is provided as an argument, if yes then read the file and execute the commands
 if len(sys.argv) > 1:
     with open(sys.argv[1], 'r') as file:
         for line in file:
@@ -17,8 +30,9 @@ print("\t- CREATE FIRSTNAME <first name> LASTNAME <last name> {BALANCE <balance>
 print("\t- DEPOSIT <account_number> <amount>")
 print("\t- WITHDRAW <account_number> <amount>")
 print("\t- BALANCE <account_number>")
+print("\t- exit")
 
-
+# Inifite loop to keep the shell running
 while True:
     text = input("banking > ")
     if text == "exit":
