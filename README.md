@@ -89,5 +89,8 @@ CREATE FIRSTNAME Joe LASTNAME Fritz ACCOUNT JF123456 BALANCE 2500
 
 ## References and Citations
 
-- https://ics.uci.edu/~pattis/misc/ebnf2.pdf
-- https://medium.com/@pythonmembers.club/building-a-lexer-in-python-a-tutorial-3b6de161fe84
+- [EBNF: A Notation to Describe Syntax](https://ics.uci.edu/~pattis/misc/ebnf2.pdf)
+- [Building a lexer in python — a tutorial](https://medium.com/@pythonmembers.club/building-a-lexer-in-python-a-tutorial-3b6de161fe84)
+- [PyTest: helps you write better programs](https://docs.pytest.org/en/8.1.x/index.html)
+- [Code Pulse: Make YOUR OWN Programming Language](https://www.youtube.com/playlist?list=PLZQftyCk7_SdoVexSmwy_tBgs7P0b97yD)
+- [Git](https://git-scm.com/docs)
