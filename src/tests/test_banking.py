@@ -46,3 +46,35 @@ def test_create_account_and_deposit():
 
 
 # Feel free to add more tests for WITHDRAW and BALANCE commands...
+
+def test_invalid_syntax_error():
+    # If someone asks the program to do something silly, the program shouldn't entertain them by trying to comply.
+    syntax = "CREATE FIRSTNAME John LASTNAME Doe BALANCE 1000 ACCOUNT JD123456"
+    assert banking.run(syntax) == "Account created: JD123456"
+    syntax = "FUNGALINFECTION JD123456 1000"
+    output = banking.run(syntax)
+    assert isinstance(output, banking.InvalidSyntaxError)
+    
+def test_illegal_char_error():
+    # If someone passes a garbled command, the program shouldn't try to do anything with it.
+    syntax = "CREATE FIRSTNAME John LASTNAME Doe BALANCE 1000 ACCOUNT JD123456"
+    assert banking.run(syntax) == "Account created: JD123456"
+    syntax = "%EPOSIT JD123456 1000"
+    output = banking.run(syntax)
+    assert isinstance(output, banking.IllegalCharError)
+    
+def test_illegal_char_error_negatives():
+    # When I was a little kid I tried this in my parents' bank account to give them a billion dollars. It didn't work then, shouldn't now.
+    syntax = "CREATE FIRSTNAME John LASTNAME Doe BALANCE 1000 ACCOUNT JD123456"
+    assert banking.run(syntax) == "Account created: JD123456"
+    syntax = "WITHDRAW JD123456 -1000"
+    output = banking.run(syntax)
+    assert isinstance(output, banking.IllegalCharError)
+    
+def test_illegal_char_error_in_deposit():
+    # If someone adds more than one decimal point, the program shouldn't lose it.
+    syntax = "CREATE FIRSTNAME John LASTNAME Doe BALANCE 1000 ACCOUNT JD123456"
+    assert banking.run(syntax) == "Account created: JD123456"
+    syntax = "DEPOSIT JD123456 1.0350.00"
+    output = banking.run(syntax)
+    assert isinstance(output, banking.IllegalCharError)    
