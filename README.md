@@ -21,7 +21,7 @@ The language will be a simple language that will have the ability to declare acc
 │   ├── tests
 │   │   └── test_banking.py  
 │   ├── banking.py
-│   └── grammer.ebnf
+│   └── grammar.ebnf
 ├── .env
 ├── .gitignore
 ├── README.md
@@ -47,13 +47,21 @@ To run this program you would need to install Python on your machine.
 2. Install the required dependencies by running the following command in the terminal:
 
 ``` bash
+# For MacOS or Linux
 pip3 install -r requirements.txt
+
+# For Windows
+pip install -r requirements.txt
 ```
 
 3. Run the following command in the terminal:
 
 ``` bash
+# For MacOS or Linux
 python3 shell.py
+
+# For Windows
+pip install -r requirements.txt
 ```
 
 4. Follow the instructions in the terminal to perform banking operations.
@@ -61,7 +69,11 @@ python3 shell.py
 If you want to run a file run the following command:
 
 ``` bash
+# For MacOS or Linux
 python3 shell.py <filepath>
+
+# For Windows
+python shell.py <filepath>
 ```
 
 ## Running specification tests
@@ -71,6 +83,10 @@ Make sure that you have installed all the dependencies before running specificat
 Specification tests utilize the [PyTest](https://docs.pytest.org/en/8.1.x/index.html) framework. To run the tests run the following command:
 
 ``` bash
+# For MacOS and Linux
+python3 -m pytest
+
+# For Windows
 python -m pytest
 ```
 
