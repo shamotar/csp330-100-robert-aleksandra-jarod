@@ -180,7 +180,7 @@ class Lexer:
             if self.current_char == DECIMAL_POINT:
                 decimal_count += 1
                 if decimal_count > 1:
-                    return InvalidSyntaxError("More than one decimal point in number")
+                    return None, InvalidSyntaxError("More than one decimal point in number")
             number += self.current_char
             self.advance()
         if "." in number:
