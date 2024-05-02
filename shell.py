@@ -32,11 +32,9 @@ print("\t- WITHDRAW <account_number> <amount>")
 print("\t- BALANCE <account_number>")
 print("\t- exit")
 
-# Inifite loop to keep the shell running
-while True:
+text = ""
+while text != "exit":
     text = input("banking > ")
-    if text == "exit":
-        break
     result = banking.run(text)
     if result:
         print(result)
